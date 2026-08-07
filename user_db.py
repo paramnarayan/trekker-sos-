@@ -1,0 +1,41 @@
+from sqlalchemy import null
+import uuid
+from datetime import datetime
+import enum
+
+from sqlalchemy import Column, String, DateTime, ForeignKey, Enum, Text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import declarative_base, relationship
+
+Base= declarative_base()
+class TrekStatus(enum.Enum):
+    PLANNED = "PLANNED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    SOS_TRIGGERED = "SOS_TRIGGERED"    
+class User(Base):
+    __tablename__='user'
+    id=Column(UUID(as_uuid=True),primary_key=True,default=uuid.uuid4())
+    user_id = Column(UUID(as_uuid=True), ForeignKey('user.id', ondelete="CASCADE"),nullable=False)
+    name=Column(String,nullable=False)
+    email=Column(String,nullable=False,unique=True)
+    password=Column(String,nullable=False)
+    user = relationship("user",back_populates="contacts")
+
+
+
+class Trek(Base):
+    __tablename__='trek'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
+    name = Column(String(255), nullable=False)
+    
+    
+    status = Column(Enum(TrekStatus), default=TrekStatus.PLANNED)
+    notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    user = relationship("User", back_populates="treks")    
+
+
