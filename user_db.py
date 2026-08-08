@@ -14,13 +14,13 @@ class TrekStatus(enum.Enum):
     COMPLETED = "COMPLETED"
     SOS_TRIGGERED = "SOS_TRIGGERED"    
 class User(Base):
-    __tablename__='user'
-    id=Column(UUID(as_uuid=True),primary_key=True,default=uuid.uuid4())
-    user_id = Column(UUID(as_uuid=True), ForeignKey('user.id', ondelete="CASCADE"),nullable=False)
-    name=Column(String,nullable=False)
-    email=Column(String,nullable=False,unique=True)
-    password=Column(String,nullable=False)
-    user = relationship("user",back_populates="contacts")
+    __tablename__ = 'user'
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, nullable=False)
+    phone_number = Column(String, nullable=False)
+    device_id = Column(String, nullable=False, unique=True)
+
+    treks = relationship("Trek", back_populates="user")
 
 
 

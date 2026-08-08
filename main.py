@@ -1,7 +1,4 @@
-from fastapi.openapi.utils import status_code_ranges
-from pydantic_core.core_schema import none_schema
-from psycopg2 import Timestamp
-from fastapi import FastAPI,Depends,HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
@@ -11,9 +8,10 @@ from uuid import UUID
 from datetime import datetime, timedelta
 from worker import trigger_sos
 import user_db
+import os
 
 
-database_url= "postgresql://postgres:mysecretpassword@localhost:5432/trekker_db"
+database_url = os.environ.get("DATABASE_URL", "postgresql://postgres:mysecretpassword@db:5432/trekker_db")
 engine = create_engine(database_url)
 
 SessionLocal=sessionmaker(autocommit=False,autoflush=False,bind=engine)
@@ -53,10 +51,10 @@ class BatchSyncPayload(BaseModel):
 
 @app.post("/users")
 def create_user(user:Usercreate,db:Session=Depends(get_db)):
-    existing_user=db.query(user_db.user).filter(user_db.User.device_id==user.device_id).first()
+    existing_user=db.query(user_db.User).filter(user_db.User.device_id==user.device_id).first()
     if existing_user:
         raise HTTPException(status_code=400,detail="device already registered")
-    new_user=user_db.user(
+    new_user=user_db.User(
         name=user.full_name,
         phone_number=user.phone_number,
         device_id=user.device_id
@@ -68,7 +66,7 @@ def create_user(user:Usercreate,db:Session=Depends(get_db)):
 
 @app.post("/sync/batch")
 def sync_off_data(payload:BatchSyncPayload,db:Session=Depends(get_db)):
-    user=db.query(user_db.user).filter(user_db.user.device_id==payload.device_id).first()
+    user=db.query(user_db.User).filter(user_db.User.device_id==payload.device_id).first()
     if not user:
         raise HTTPException(status_code=400,detail="device not registered")
     trek = db.query(user_db.Trek).filter(user_db.Trek.id == payload.trek_id).first()
