@@ -1,3 +1,4 @@
+from socket import LOCAL_PEERCRED
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -9,7 +10,7 @@ from datetime import datetime, timedelta
 from worker import trigger_sos
 import user_db
 import os
-
+from datetime import timezone
 
 database_url = os.environ.get("DATABASE_URL", "postgresql://postgres:mysecretpassword@db:5432/trekker_db")
 engine = create_engine(database_url)
@@ -45,6 +46,13 @@ class BatchSyncPayload(BaseModel):
     device_id: str
     trek_id: UUID
     events: List[Offline_event_check]
+
+class locationupdate(BaseModel):
+    latitude:float
+    longitude:float 
+
+
+
 
 
 #API
@@ -98,4 +106,30 @@ def start_checkpoint_timer(trek_id: str, grace_period_minutes: int):
     return {
         "message": "Timer started. Switch is armed.", 
         "sos_scheduled_for": sos_time
+    }
+
+
+
+@app.post("/user/{device_id}/location")
+def user_location(
+    device_id: str,
+    location : locationupdate,
+    db:Session=Depends(get_db)):
+    user=db.query(user_db.User).filter(user_db.User.device_id==device_id).first()
+    if not user:
+        raise HTTPException(status_code= 404,detail="user device not found")
+
+
+    user.latitude= location.latitude
+    user.longitude= location.longitude
+    user.last_updated= datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(user)
+    return {
+        "message": "location updated successfully",
+        "user": {
+            "latitude": user.latitude,
+            "longitude": user.longitude,
+            "last_updated": user.last_updated
+        }
     }
