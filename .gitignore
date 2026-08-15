@@ -1,3 +1,39 @@
-.venv
+# Python
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment & secrets
 .env
+*.env.local
+*.env.*.local
+
+# Docker
+.dockerignore
+
+# Alembic
+alembic/versions/__pycache__/
+
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs
+*.log
+celerybeat-schedule
+celerybeat.pid

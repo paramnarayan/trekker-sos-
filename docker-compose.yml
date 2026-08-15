@@ -5,6 +5,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: trekker_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -31,8 +33,14 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:5432/trekker_db
       - REDIS_URL=redis://redis:6379/0
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
     depends_on:
       - db
       - redis
+    env_file:
+      - .env
 
-
+volumes:
+  postgres_data:
